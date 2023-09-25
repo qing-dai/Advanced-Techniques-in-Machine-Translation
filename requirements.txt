@@ -1,5 +1,5 @@
 numpy
-rise
+# rise
 sacrebleu
-torch==1.6.0
+torch==2.0.1
 tqdm

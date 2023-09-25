@@ -12,13 +12,13 @@ The toolkit is based on [this implementation](https://github.com/demelin/nmt_too
 # ensure that you have conda (or miniconda) installed (https://conda.io/projects/conda/en/latest/user-guide/install/index.html) and that it is activated
 
 # create clean environment
-conda create --name atmt36 python=3.6
+conda create --name atmt311 python=3.11
 
 # activate the environment
-conda activate atmt36
+conda activate atmt311
 
 # intall required packages
-pip install torch==1.6.0 numpy tqdm sacrebleu
+conda install pytorch=2.0.1 numpy tqdm sacrebleu
 ```
 
 ### virtualenv
@@ -27,16 +27,19 @@ pip install torch==1.6.0 numpy tqdm sacrebleu
 # ensure that you have python 3.6 downloaded and installed (https://www.python.org/downloads/)
 
 # install virtualenv
-pip install virtualenv
+pip install virtualenv  # for both powershell and WSL
 
 # create a virtual environment named "atmt36"
-virtualenv --python=python3 atmt36
+virtualenv --python=python3.11 atmt311  # on WSL terminal
+python -m venv atmt311    # on powershell
 
 # launch the newly created environment
-atmt36/bin/activate
+source atmt311/bin/activate
+.\atmt311\Scripts\Activate.ps1   # on powershell
+
 
 # intall required packages
-pip install torch==1.6.0 numpy tqdm sacrebleu
+pip install torch==2.0.1 numpy tqdm sacrebleu   # for both powershell and WSL
 ```
 
 <!-- # Data Preprocessing
