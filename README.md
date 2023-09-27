@@ -6,6 +6,8 @@ The toolkit is based on [this implementation](https://github.com/demelin/nmt_too
 
 # Environment Setup
 
+In case you prefer to run the code locally, we suggest creating a Python environment to prevent library clashes with future projects, using either Conda or virtualenv (Conda is suggested). For other options, see [supplementary material](https://neat-tortellini-10f.notion.site/ATMT-Autumn-2023-Assignment-1-Setup-Instructions-96d8444a7d7146139a5b76a86a559f5f?pvs=4)
+
 ### conda
 
 ```
@@ -24,12 +26,12 @@ conda install pytorch=2.0.1 numpy tqdm sacrebleu
 ### virtualenv
 
 ```
-# ensure that you have python 3.6 downloaded and installed (https://www.python.org/downloads/)
+# ensure that you have python > 3.6 downloaded and installed (https://www.python.org/downloads/)
 
 # install virtualenv
 pip install virtualenv  # for both powershell and WSL
 
-# create a virtual environment named "atmt36"
+# create a virtual environment named "atmt311"
 virtualenv --python=python3.11 atmt311  # on WSL terminal
 python -m venv atmt311    # on powershell
 
