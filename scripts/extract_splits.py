@@ -12,6 +12,8 @@ Example call:
 
 """
 
+print("hello world")
+
 import argparse
 import random
 from pathlib import Path
