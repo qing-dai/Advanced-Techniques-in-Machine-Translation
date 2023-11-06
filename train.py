@@ -19,11 +19,11 @@ def get_args():
     parser.add_argument('--cuda', action='store_true', help='Use a GPU')
 
     # Add data arguments
-    parser.add_argument('--data', default='indomain/preprocessed_data/', help='path to data directory')
+    parser.add_argument('--data', default='data/en-fr/BPE/', help='path to data directory')
     parser.add_argument('--source-lang', default='fr', help='source language')
     parser.add_argument('--target-lang', default='en', help='target language')
-    parser.add_argument('--max-tokens', default=None, type=int, help='maximum number of tokens in a batch')
-    parser.add_argument('--batch-size', default=1, type=int, help='maximum number of sentences in a batch')
+    parser.add_argument('--max-tokens', default=4096, type=int, help='maximum number of tokens in a batch')
+    parser.add_argument('--batch-size', default=32, type=int, help='maximum number of sentences in a batch')
     parser.add_argument('--train-on-tiny', action='store_true', help='train model on a tiny dataset')
 
     # Add model arguments
