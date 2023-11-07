@@ -41,6 +41,13 @@ def get_args():
     parser.add_argument('--num-merge-operations', default=32000, type=int, help='number of BPE merge operations')
     return parser.parse_args()
 
+def apply_bpe_to_data_with_vocab_filter(bpe, input_file, output_file, vocab, threshold):
+    with codecs.open(input_file, 'r', encoding='utf-8') as infile, \
+            codecs.open(output_file, 'w', encoding='utf-8') as outfile:
+        for line in infile:
+            bpe_line = bpe.process_line(line.rstrip(), vocab, threshold)
+            outfile.write(bpe_line + '\n')
+
 
 def apply_bpe_to_data(bpe_codes_path, input_file, output_file):
     bpe = BPE(codecs.open(bpe_codes_path, encoding='utf-8'))
@@ -91,25 +98,57 @@ def make_binary_dataset(input_file, output_file, dictionary, tokenize=word_token
 def main(args):
     os.makedirs(args.dest_dir, exist_ok=True)
 
-    # Train or load BPE codes for source language
-    if not args.bpe_codes_src:
-        bpe_out_src = StringIO()
-        with open(args.train_prefix + '.' + args.source_lang, 'r', encoding='utf-8') as src_data:
-            learn_bpe(src_data, bpe_out_src, num_symbols=args.num_merge_operations)
-        args.bpe_codes_src = os.path.join(args.dest_dir, 'bpe.codes.' + args.source_lang)
-        with open(args.bpe_codes_src, 'w', encoding='utf-8') as codes_file:
-            bpe_out_src.seek(0)
-            codes_file.write(bpe_out_src.read())
+    # Train BPE codes combining source language and target language training data
+    #if not args.bpe_codes_src:
+    bpe_out = StringIO()
+    # Concatenate the source and target language training data
+    with open(args.train_prefix + '.' + args.source_lang, 'r', encoding='utf-8') as src_data, \
+            open(args.train_prefix + '.' + args.target_lang, 'r', encoding='utf-8') as tgt_data:
+        # Learn BPE on the concatenated source and target data
+        learn_bpe(src_data, bpe_out, num_symbols=args.num_merge_operations)
+        learn_bpe(tgt_data, bpe_out, num_symbols=args.num_merge_operations)
 
-    # Train or load BPE codes for target language
-    if not args.bpe_codes_tgt:
-        bpe_out_tgt = StringIO()
-        with open(args.train_prefix + '.' + args.target_lang, 'r', encoding='utf-8') as tgt_data:
-            learn_bpe(tgt_data, bpe_out_tgt, num_symbols=args.num_merge_operations)
-        args.bpe_codes_tgt = os.path.join(args.dest_dir, 'bpe.codes.' + args.target_lang)
-        with open(args.bpe_codes_tgt, 'w', encoding='utf-8') as codes_file:
-            bpe_out_tgt.seek(0)
-            codes_file.write(bpe_out_tgt.read())
+    # Save the learned BPE codes to a joint file
+    args.bpe_codes = os.path.join(args.dest_dir, 'bpe.codes')
+    with open(args.bpe_codes, 'w', encoding='utf-8') as codes_file:
+        bpe_out.seek(0)
+        codes_file.write(bpe_out.read())
+
+    # Assume bpe_codes is the path to the joint BPE codes file learned from the concatenated data
+    bpe = BPE(codecs.open(args.bpe_codes, encoding='utf-8'))
+
+    # Apply BPE to the source language training data and get the vocabulary
+    vocab_L1 = {}
+    with codecs.open(args.train_prefix + '.' + args.source_lang, 'r', encoding='utf-8') as infile, \
+            codecs.open(os.path.join(args.dest_dir, 'train.bpe.' + args.source_lang), 'w', encoding='utf-8') as outfile:
+        for line in infile:
+            bpe_line = bpe.process_line(line.strip())
+            outfile.write(bpe_line + '\n')
+            for word in bpe_line.split():
+                vocab_L1[word] = vocab_L1.get(word, 0) + 1
+
+    # Apply BPE to the target language training data and get the vocabulary
+    vocab_L2 = {}
+    with codecs.open(args.train_prefix + '.' + args.target_lang, 'r', encoding='utf-8') as infile, \
+            codecs.open(os.path.join(args.dest_dir, 'train.bpe.' + args.target_lang), 'w', encoding='utf-8') as outfile:
+        for line in infile:
+            bpe_line = bpe.process_line(line.strip())
+            outfile.write(bpe_line + '\n')
+            for word in bpe_line.split():
+                vocab_L2[word] = vocab_L2.get(word, 0) + 1
+
+    # Write the vocabularies to separate files
+    with codecs.open(os.path.join(args.dest_dir, 'vocab.' + args.source_lang), 'w', encoding='utf-8') as vocab_file:
+        for word, freq in vocab_L1.items():
+            vocab_file.write(f"{word} {freq}\n")
+
+    with codecs.open(os.path.join(args.dest_dir, 'vocab.' + args.target_lang), 'w', encoding='utf-8') as vocab_file:
+        for word, freq in vocab_L2.items():
+            vocab_file.write(f"{word} {freq}\n")
+
+
+
+
 
     # Apply BPE to preprocessed data
     for split in ['train', 'valid', 'test','tiny_train']:
