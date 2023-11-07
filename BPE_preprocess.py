@@ -24,10 +24,10 @@ def get_args():
     parser.add_argument('--test-prefix', default=None, metavar='FP', help='test file prefix')
     parser.add_argument('--dest-dir', default='data-bin', metavar='DIR', help='destination dir')
 
-    parser.add_argument('--threshold-src', default=2, type=int,
+    parser.add_argument('--threshold-src', default=1, type=int,
                         help='map words appearing less than threshold times to unknown')
     parser.add_argument('--num-words-src', default=-1, type=int, help='number of source words to retain')
-    parser.add_argument('--threshold-tgt', default=2, type=int,
+    parser.add_argument('--threshold-tgt', default=1, type=int,
                         help='map words appearing less than threshold times to unknown')
     parser.add_argument('--num-words-tgt', default=-1, type=int, help='number of target words to retain')
     parser.add_argument('--vocab-src', default=None, type=str, help='path to dictionary')
@@ -37,7 +37,7 @@ def get_args():
     # Add BPE arguments
     parser.add_argument('--bpe-codes-src', default=None, type=str, help='path to source language BPE codes')
     parser.add_argument('--bpe-codes-tgt', default=None, type=str, help='path to target language BPE codes')
-    parser.add_argument('--vocab-threshold', default=2, type=int, help='vocabulary threshold for BPE')
+    parser.add_argument('--vocab-threshold', default=1, type=int, help='vocabulary threshold for BPE')
     parser.add_argument('--num-merge-operations', default=20000, type=int, help='number of BPE merge operations')
     return parser.parse_args()
 
