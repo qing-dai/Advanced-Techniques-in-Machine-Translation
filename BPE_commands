@@ -1,0 +1,23 @@
+subword-nmt learn-joint-bpe-and-vocab --input data/en-fr/preprocessed/train.en data/en-fr/preprocessed/train.fr -s 32000 -o data/
+en-fr/new_BPE/bpe.codes --write-vocabulary data/en-fr/new_BPE/vocab.en data/en-fr/new_BPE/vocab.fr
+
+subword-nmt apply-bpe -c data/en-fr/new_BPE/bpe.codes --vocabulary data/en-fr/new_BPE/vocab.en --vocabulary-threshold 1 < data/en
+-fr/preprocessed/train.en > data/en-fr/new_BPE/train.en 
+
+subword-nmt apply-bpe -c data/en-fr/new_BPE/bpe.codes --vocabulary data/en-fr/new_BPE/vocab.fr --vocabulary-threshold 1 < data/en-fr/preprocessed/train.fr > data/en-fr/new_BPE/train.fr
+
+ subword-nmt apply-bpe -c data/en-fr/new_BPE/bpe.codes --vocabulary data/en-fr/new_BPE/vocab.en --vocabulary-threshold 1 < data/en
+-fr/preprocessed/valid.en > data/en-fr/new_BPE/valid.en
+
+ subword-nmt apply-bpe -c data/en-fr/new_BPE/bpe.codes --vocabulary data/en-fr/new_BPE/vocab.en --vocabulary-threshold 1 < data/en
+-fr/preprocessed/tiny_train.en > data/en-fr/new_BPE/tiny_train.en
+
+subword-nmt apply-bpe -c data/en-fr/new_BPE/bpe.codes --vocabulary data/en-fr/new_BPE/vocab.en --vocabulary-threshold 1 < data/en
+-fr/preprocessed/test.en > data/en-fr/new_BPE/test.en      
+
+subword-nmt apply-bpe -c data/en-fr/new_BPE/bpe.codes --vocabulary data/en-fr/new_BPE/vocab.fr --vocabulary-threshold 1 < data/en
+-fr/preprocessed/test.fr > data/en-fr/new_BPE/test.fr
+
+subword-nmt apply-bpe -c data/en-fr/new_BPE/bpe.codes --vocabulary data/en-fr/new_BPE/vocab.fr --vocabulary-threshold 1 < data/en-fr/preprocessed/tiny_train.fr > data/en-fr/new_BPE/tiny_train.fr
+
+subword-nmt apply-bpe -c data/en-fr/new_BPE/bpe.codes --vocabulary data/en-fr/new_BPE/vocab.fr --vocabulary-threshold 1 < data/en-fr/preprocessed/valid.fr > data/en-fr/new_BPE/valid.fr
