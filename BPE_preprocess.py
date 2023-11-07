@@ -37,8 +37,8 @@ def get_args():
     # Add BPE arguments
     parser.add_argument('--bpe-codes-src', default=None, type=str, help='path to source language BPE codes')
     parser.add_argument('--bpe-codes-tgt', default=None, type=str, help='path to target language BPE codes')
-    parser.add_argument('--vocab-threshold', default=20, type=int, help='vocabulary threshold for BPE')
-    parser.add_argument('--num-merge-operations', default=10000, type=int, help='number of BPE merge operations')
+    parser.add_argument('--vocab-threshold', default=2, type=int, help='vocabulary threshold for BPE')
+    parser.add_argument('--num-merge-operations', default=20000, type=int, help='number of BPE merge operations')
     return parser.parse_args()
 
 def apply_bpe_to_data(bpe, input_file, output_file):
