@@ -5,7 +5,6 @@ import os
 import sys
 import re
 import pickle
-import codecs
 
 # establish link to seq2seq dir
 # scripts_dir = os.path.dirname(os.path.abspath(__file__))
@@ -14,10 +13,6 @@ import codecs
 
 from seq2seq import utils
 from seq2seq.data.dictionary import Dictionary
-
-from subword_nmt.learn_bpe import learn_bpe
-from subword_nmt.apply_bpe import BPE
-from io import StringIO
 
 SPACE_NORMALIZER = re.compile("\s+")
 
@@ -30,73 +25,30 @@ def word_tokenize(line):
 
 def get_args():
     parser = argparse.ArgumentParser('Data pre-processing)')
-    parser.add_argument('--source-lang', default=None, metavar='SRC', help='source language')
-    parser.add_argument('--target-lang', default=None, metavar='TGT', help='target language')
+    parser.add_argument('--source-lang', default='fr', metavar='SRC', help='source language')
+    parser.add_argument('--target-lang', default='en', metavar='TGT', help='target language')
 
-    parser.add_argument('--train-prefix', default=None, metavar='FP', help='train file prefix')
-    parser.add_argument('--tiny-train-prefix', default=None, metavar='FP', help='tiny train file prefix')
-    parser.add_argument('--valid-prefix', default=None, metavar='FP', help='valid file prefix')
-    parser.add_argument('--test-prefix', default=None, metavar='FP', help='test file prefix')
-    parser.add_argument('--dest-dir', default='data-bin', metavar='DIR', help='destination dir')
+    parser.add_argument('--train-prefix', default='data/en-fr/new_BPE/train', metavar='FP', help='train file prefix')
+    parser.add_argument('--tiny-train-prefix', default='data/en-fr/new_BPE/tiny_train', metavar='FP', help='tiny train file prefix')
+    parser.add_argument('--valid-prefix', default='data/en-fr/new_BPE/valid', metavar='FP', help='valid file prefix')
+    parser.add_argument('--test-prefix', default='data/en-fr/new_BPE/test', metavar='FP', help='test file prefix')
+    parser.add_argument('--dest-dir', default='data/en-fr/BPE_final', metavar='DIR', help='destination dir')
 
-    parser.add_argument('--threshold-src', default=2, type=int,
+    parser.add_argument('--threshold-src', default=1, type=int,
                         help='map words appearing less than threshold times to unknown')
     parser.add_argument('--num-words-src', default=-1, type=int, help='number of source words to retain')
-    parser.add_argument('--threshold-tgt', default=2, type=int,
+    parser.add_argument('--threshold-tgt', default=1, type=int,
                         help='map words appearing less than threshold times to unknown')
     parser.add_argument('--num-words-tgt', default=-1, type=int, help='number of target words to retain')
-    parser.add_argument('--vocab-src', default=None, type=str, help='path to dictionary')
-    parser.add_argument('--vocab-trg', default=None, type=str, help='path to dictionary')
+    parser.add_argument('--vocab-src', default='data/en-fr/new_BPE/dict.fr', type=str, help='path to dictionary')
+    parser.add_argument('--vocab-trg', default='data/en-fr/new_BPE/dict.en', type=str, help='path to dictionary')
     parser.add_argument('--quiet', action='store_true', help='no logging')
-
-    # Add BPE arguments
-    parser.add_argument('--bpe-codes-src', default=None, type=str, help='path to source language BPE codes')
-    parser.add_argument('--bpe-codes-tgt', default=None, type=str, help='path to target language BPE codes')
-    parser.add_argument('--num-merge-operations', default=32000, type=int, help='number of BPE merge operations')
 
     return parser.parse_args()
 
-def apply_bpe_to_data(bpe_codes_path, input_file, output_file):
-    bpe = BPE(open(bpe_codes_path, encoding='utf-8'))
-    with open(input_file, 'r', encoding='utf-8') as infile, \
-            open(output_file, 'w', encoding='utf-8') as outfile:
-        for line in infile:
-            outfile.write(bpe.process_line(line.rstrip()) + '\n')
 
 def main(args):
     os.makedirs(args.dest_dir, exist_ok=True)
-
-    if not args.bpe_codes_src:
-        # Train BPE model for the source language
-        bpe_out_src = StringIO()
-        with open(args.train_prefix + '.' + args.source_lang, 'r', encoding='utf-8') as src_data:
-            learn_bpe(src_data, bpe_out_src, num_symbols=args.num_merge_operations)
-
-        # Save BPE codes for the source language
-        with open(os.path.join(args.dest_dir, 'bpe.codes.' + args.source_lang), 'w', encoding='utf-8') as codes_file:
-            bpe_out_src.seek(0)
-            codes_file.write(bpe_out_src.read())
-
-    if not args.bpe_codes_tgt:
-
-        # Train BPE model for the target language
-        bpe_out_tgt = StringIO()
-        with open(args.train_prefix + '.' + args.target_lang, 'r', encoding='utf-8') as tgt_data:
-            learn_bpe(tgt_data, bpe_out_tgt, num_symbols=args.num_merge_operations)
-
-        # Save BPE codes for the target language
-        with open(os.path.join(args.dest_dir, 'bpe.codes.' + args.target_lang), 'w', encoding='utf-8') as codes_file:
-            bpe_out_tgt.seek(0)
-            codes_file.write(bpe_out_tgt.read())
-
-    else:
-
-        # Load existing BPE codes for both source and target languages
-        bpe_src = BPE(open(args.bpe_codes_src, encoding='utf-8'))
-        bpe_tgt = BPE(open(args.bpe_codes_tgt, encoding='utf-8'))
-
-
-
     if not args.vocab_src:
         src_dict = build_dictionary([args.train_prefix + '.' + args.source_lang])
 
@@ -169,9 +121,8 @@ def make_binary_dataset(input_file, output_file, dictionary, tokenize=word_token
     with open(output_file, 'wb') as outf:
         pickle.dump(tokens_list, outf, protocol=pickle.DEFAULT_PROTOCOL)
         if not args.quiet:
-            logging.info(
-                'Built a binary dataset for {}: {} sentences, {} tokens, {:.3f}% replaced by unknown token'.format(
-                    input_file, nsent, ntok, 100.0 * sum(unk_counter.values()) / ntok, dictionary.unk_word))
+            logging.info('Built a binary dataset for {}: {} sentences, {} tokens, {:.3f}% replaced by unknown token'.format(
+            input_file, nsent, ntok, 100.0 * sum(unk_counter.values()) / ntok, dictionary.unk_word))
 
 
 if __name__ == '__main__':

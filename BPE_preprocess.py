@@ -38,7 +38,7 @@ def get_args():
     parser.add_argument('--bpe-codes-src', default=None, type=str, help='path to source language BPE codes')
     parser.add_argument('--bpe-codes-tgt', default=None, type=str, help='path to target language BPE codes')
     parser.add_argument('--vocab-threshold', default=1, type=int, help='vocabulary threshold for BPE')
-    parser.add_argument('--num-merge-operations', default=20000, type=int, help='number of BPE merge operations')
+    parser.add_argument('--num-merge-operations', default=32000, type=int, help='number of BPE merge operations')
     return parser.parse_args()
 
 def apply_bpe_to_data(bpe, input_file, output_file):
@@ -106,9 +106,6 @@ def make_binary_dataset(input_file, output_file, dictionary, tokenize=word_token
             logging.info(
                 'Built a binary dataset for {}: {} sentences, {} tokens, {:.3f}% replaced by unknown token'.format(
                     input_file, nsent, ntok, 100.0 * sum(unk_counter.values()) / ntok, dictionary.unk_word))
-
-
-
 
 
 def main(args):
