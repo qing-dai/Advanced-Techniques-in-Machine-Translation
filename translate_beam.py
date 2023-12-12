@@ -20,11 +20,11 @@ def get_args():
     parser.add_argument('--seed', default=42, type=int, help='pseudo random number generator seed')
 
     # Add data arguments
-    parser.add_argument('--data', default='assignments/03/prepared', help='path to data directory')
+    parser.add_argument('--data', default='data/en-fr/prepared', help='path to data directory')
     parser.add_argument('--dicts', required=True, help='path to directory containing source and target dictionaries')
     parser.add_argument('--checkpoint-path', default='checkpoints_asg4/checkpoint_best.pt', help='path to the model file')
     parser.add_argument('--batch-size', default=None, type=int, help='maximum number of sentences in a batch')
-    parser.add_argument('--output', default='model_translations.txt', type=str,
+    parser.add_argument('--output', default='beam_translation/model_translations.txt', type=str,
                         help='path to the output file destination')
     parser.add_argument('--max-len', default=100, type=int, help='maximum length of generated sequence')
 
@@ -120,6 +120,7 @@ def main(args):
                 node = BeamSearchNode(searches[i], emb, lstm_out, final_hidden, final_cell,
                                       mask, torch.cat((go_slice[i], next_word)), log_p, 1)
                 # __QUESTION 3: Why do we add the node with a negative score?
+
                 searches[i].add(-node.eval(args.alpha), node)
 
         #import pdb;pdb.set_trace()
@@ -165,28 +166,35 @@ def main(args):
 
                     # Get parent node and beam search object for corresponding sentence
                     node = nodes[i]
+                    #new_log_prob = log_p
                     search = node.search
+
 
                     # __QUESTION 4: How are "add" and "add_final" different? 
                     # What would happen if we did not make this distinction?
 
                     # Store the node as final if EOS is generated
                     if next_word[-1] == tgt_dict.eos_idx:
-                        node = BeamSearchNode(
+                        new_node = BeamSearchNode(
                             search, node.emb, node.lstm_out, node.final_hidden,
                             node.final_cell, node.mask, torch.cat((prev_words[i][0].view([1]),
                             next_word)), node.logp, node.length
                             )
-                        search.add_final(-node.eval(args.alpha), node)
+                        print(
+                            f"in eos node {i}, the new accumulate logp is {node.logp}, and the score is {new_node.eval(args.alpha)}")
+
+                        search.add_final(-new_node.eval(args.alpha), new_node)
 
                     # Add the node to current nodes for next iteration
                     else:
-                        node = BeamSearchNode(
+                        new_node = BeamSearchNode(
                             search, node.emb, node.lstm_out, node.final_hidden,
                             node.final_cell, node.mask, torch.cat((prev_words[i][0].view([1]),
                             next_word)), node.logp + log_p, node.length + 1
                             )
-                        search.add(-node.eval(args.alpha), node)
+                        new_node.log_probs = node.log_probs + [log_p]
+                        print(f"in node {i}, the new accumulate logp is {node.logp + log_p}, and the score is {new_node.eval(args.alpha)}")
+                        search.add(-new_node.eval(args.alpha), new_node)
 
             # #import pdb;pdb.set_trace()
             # __QUESTION 5: What happens internally when we prune our beams?

@@ -83,8 +83,16 @@ class BeamSearchNode(object):
 
         self.search = search
 
-    def eval(self, alpha=0.0):
-        """ Returns score of sequence up to this node 
+        # Initialize a list to store individual log probabilities
+        self.log_probs = [logProb]
+
+
+    def get_squared_sum(self):
+        """Return the sum of squared of the log probabilities."""
+        return sum(lp ** 2 for lp in self.log_probs)
+
+    def eval(self, alpha=0.0, lambda_reg = 0.4):
+        """ Returns the regularized score of sequence up to this node
 
         params: 
             :alpha float (default=0.0): hyperparameter for
@@ -94,5 +102,6 @@ class BeamSearchNode(object):
         
         """
         normalizer = (5 + self.length)**alpha / (5 + 1)**alpha
-        return self.logp / normalizer
-        
+        score = self.logp / normalizer
+        regularization_term = lambda_reg * self.get_squared_sum()
+        return score - regularization_term
