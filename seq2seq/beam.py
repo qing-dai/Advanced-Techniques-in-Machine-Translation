@@ -91,7 +91,7 @@ class BeamSearchNode(object):
         """Return the sum of squared of the log probabilities."""
         return sum(lp ** 2 for lp in self.log_probs)
 
-    def eval(self, alpha=0.0, lambda_reg = 0.4):
+    def eval(self, alpha=0.0, lambda_reg = 0.2):
         """ Returns the regularized score of sequence up to this node
 
         params: 
